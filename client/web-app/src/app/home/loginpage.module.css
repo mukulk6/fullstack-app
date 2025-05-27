@@ -1,0 +1,45 @@
+.outerBox
+{
+    border: 1px solid lightgray;
+    border-radius: 6px;
+    margin-top: 2%;
+}
+
+.titleHeader
+{
+    font-size: 21px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: center;
+}
+
+.inputBox
+{
+    text-align: center;
+    font-size: 14px;
+    display: flex;
+    padding-bottom: 5px;
+}
+
+.inputElement
+{
+    padding:5px;
+    border: 1px solid lightgray;
+    outline: 'none';
+    width: 100%;
+
+}
+
+.inputElement:focus
+{
+    border: 1px solid lightgray;
+    outline: none;
+    padding:5px;
+}
+
+.selectComponent{
+    border: 1px solid lightgray;
+    padding:5px;
+    font-size: 14px;
+    outline: none;
+}
