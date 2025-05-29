@@ -13,16 +13,23 @@ func SetupRoutes(r *gin.Engine) {
 	r.GET("/users", handlers.GetUsers)
 	r.POST("/signup", handlers.SignUpUser)
 	r.POST("/login", handlers.SignInUser)
+
+	// All product routes require authentication
 	product := r.Group("/products")
+	product.Use(middleware.AuthMiddleware()) // ✅ Add this
 	{
-		product.GET("", handlers.GetAllProducts)       // Paginated list of products
-		product.POST("", handlers.CreateProduct)       // Admin only
-		product.PUT("/:id", handlers.UpdateProduct)    // Admin only
-		product.DELETE("/:id", handlers.DeleteProduct) // Admin only
-		product.GET("/:id", handlers.GetProductById)   //Get Product By Id
+		product.GET("", handlers.GetAllProducts)
+		product.GET("/:id", handlers.GetProductById)
+
+		// Admin-only routes
+		product.POST("", middleware.AdminMiddleware(), handlers.CreateProduct)
+		product.PUT("/:id", middleware.AdminMiddleware(), handlers.UpdateProduct)
+		product.DELETE("/:id", middleware.AdminMiddleware(), handlers.DeleteProduct)
 	}
+
+	// Admin-only endpoints
 	admin := r.Group("/admins")
-	admin.Use(middleware.AuthMiddleware(), middleware.AdminMiddleware()) // Restrict to Admins
+	admin.Use(middleware.AuthMiddleware(), middleware.AdminMiddleware())
 	{
 		admin.GET("/list", handlers.GetAdminList)
 	}

@@ -82,32 +82,30 @@ func SignInUser(c *gin.Context) {
 	}
 
 	var storedHashedPassword string
-	query := `SELECT password FROM users WHERE email = $1`
-	err := db.Pool.QueryRow(context.Background(), query, input.Email).Scan(&storedHashedPassword)
+	var role string
+	var id int
+
+	// Fetch all necessary fields in one query
+	query := `SELECT id, password, role FROM users WHERE email = $1`
+	err := db.Pool.QueryRow(context.Background(), query, input.Email).Scan(&id, &storedHashedPassword, &role)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid email or password", "error": err.Error()})
 		return
 	}
 
+	// Compare password
 	err = bcrypt.CompareHashAndPassword([]byte(storedHashedPassword), []byte(input.Password))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid email or password", "error": true})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid email or password"})
 		return
 	}
 
-	// Get user role
-	var role string
-	err = db.Pool.QueryRow(context.Background(), `SELECT role FROM users WHERE email = $1`, input.Email).Scan(&role)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to fetch role", "error": err.Error()})
-		return
-	}
-
-	// Create JWT token
+	// Generate token with user ID and role
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"email": input.Email,
-		"role":  role,
-		"exp":   time.Now().Add(24 * time.Hour).Unix(),
+		"user_id": id,
+		"role":    role,
+		"email":   input.Email,
+		"exp":     time.Now().Add(24 * time.Hour).Unix(),
 	})
 
 	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
@@ -116,7 +114,12 @@ func SignInUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Login successful", "token": tokenString, "role": role})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Login successful",
+		"token":   tokenString,
+		"role":    role,
+		"id":id
+	})
 }
 
 type Product struct {
@@ -134,8 +137,25 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 
-	query := `INSERT INTO products (name, description, price, quantity) VALUES ($1, $2, $3, $4)`
-	_, err := db.Pool.Exec(context.Background(), query, input.Name, input.Description, input.Price, input.Quantity)
+	userIDInterface, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User not authenticated"})
+		return
+	}
+
+	userID, ok := userIDInterface.(int)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID type"})
+		return
+	}
+
+	query := `
+		INSERT INTO products (name, description, price, quantity, created_by)
+		VALUES ($1, $2, $3, $4, $5)
+	`
+	_, err := db.Pool.Exec(context.Background(), query,
+		input.Name, input.Description, input.Price, input.Quantity, userID,
+	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create product"})
 		return
@@ -182,23 +202,23 @@ func GetAllProducts(c *gin.Context) {
 	var err error
 
 	if adminUsername != "" {
-		query = `
-			SELECT p.id, p.name, p.description, p.price, p.quantity
-			FROM products p
-			JOIN users u ON p.created_by = u.id
-			WHERE u.email = $1
-		`
+		query = `SELECT p.id, p.name, p.description, p.price, p.quantity
+FROM products p
+JOIN users u ON p.created_by = u.id
+WHERE u.email = $1
+ORDER BY p.updated_at DESC`
+
 		rows, err = db.Pool.Query(context.Background(), query, adminUsername)
 	} else {
 		query = `
 			SELECT id, name, description, price, quantity
-			FROM products
+			FROM products ORDER BY updated_at DESC
 		`
 		rows, err = db.Pool.Query(context.Background(), query)
 	}
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch products"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	defer rows.Close()

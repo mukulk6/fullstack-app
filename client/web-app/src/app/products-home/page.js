@@ -41,7 +41,7 @@ export default function ProductsPage() {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
-				 Authorization: token,
+				 Authorization: `Bearer ${token}`,
 			},
 		})
 			.then((res) => res.json()) // ✅ return the parsed JSON
@@ -61,10 +61,12 @@ export default function ProductsPage() {
 	}
 
 	const onClickDelete = () => {
+			const token = localStorage.getItem("token");
 		    fetch(`http://localhost:8080/products/${deleteId}`, {
         method: 'DELETE',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+			'Authorization':`Bearer ${token}`
         }
     })
     .then((res) => {
@@ -103,7 +105,7 @@ export default function ProductsPage() {
 				method:'GET',
 				headers:{
 					  'Content-Type': 'application/json',
-						'Authorization':token
+						'Authorization':`Bearer ${token}`
 				},
 			}).then((res)=>res.json()).then((data)=>setData(data?.products)).catch((err)=>console.log(err))
 		}
@@ -124,7 +126,7 @@ export default function ProductsPage() {
 				    method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-				'Authorization':token
+				'Authorization':`Bearer ${token}`
       },
 			}).then((res)=>res.json()).then((data)=>setOptions(data)).catch((err)=>console.log(err))
 		}
@@ -180,11 +182,11 @@ export default function ProductsPage() {
 									<Typography sx={{ color: 'text.secondary', }}>{obj.price + " " + "INR"}</Typography>
 									<Typography sx={{ color: 'text.secondary', mb: 1.2 }}>Quantity:{" "}{obj.quantity}</Typography>
 									<div style={{ textAlign: 'end' }}>
-									{role === 'Admin' && (<><Typography sx={{ color: 'text.secondary', mb: 1.2 }}>Product Id:{" "}{obj.id}</Typography>
+									{role === 'Admin' && localStorage.getItem("role") && localStorage.getItem("role") === 'Admin' && (<><Typography sx={{ color: 'text.secondary', mb: 1.2 }}>Product Id:{" "}{obj.id}</Typography>
 									<div style={{ textAlign: 'end' }}></div></>)}
-										<Button onClick={() => router.push(`/new-product/${obj.id}`)} style={{ textTransform: 'none', fontSize: '14px', marginRight: '7px' }} endIcon={<EditIcon />} variant="contained">Edit</Button>
-										<Button onClick={()=>handleOpen(obj.id)} endIcon={<DeleteIcon />
-									} style={{ backgroundColor: 'red', textTransform: 'none', fontSize: '14px' }} variant="contained">Delete</Button>
+										{role === 'Admin' && localStorage.getItem("role") && localStorage.getItem("role") === 'Admin' && <Button onClick={() => router.push(`/new-product/${obj.id}`)} style={{ textTransform: 'none', fontSize: '14px', marginRight: '7px' }} endIcon={<EditIcon />} variant="contained">Edit</Button>}
+										{role === 'Admin' && localStorage.getItem("role") && localStorage.getItem("role") === 'Admin' && <Button onClick={()=>handleOpen(obj.id)} endIcon={<DeleteIcon />
+									} style={{ backgroundColor: 'red', textTransform: 'none', fontSize: '14px' }} variant="contained">Delete</Button>}
 									</div>
 								</CardContent></Card></Grid>
 								</>

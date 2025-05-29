@@ -34,6 +34,7 @@ export default function EditableComponent({ edit, id, data }) {
 		setInputValues({ ...inputValues, [e.target.name]: e.target.value })
 	}
 	const onClickSubmitValues = () => {
+			const token = localStorage.getItem("token")
 				let newObj = {
 			"name": inputValues.name,
 			"description": inputValues.description,
@@ -46,6 +47,7 @@ export default function EditableComponent({ edit, id, data }) {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${token}`
 			},
 			body: JSON.stringify(newObj),
 		}).then((res) => res.json()).then((data) => {
@@ -63,6 +65,7 @@ if (edit) {
 		method: 'PUT',
 		headers: {
 			'Content-Type': 'application/json',
+			'Authorization':token
 		},
 		body: JSON.stringify(newObj),
 	})

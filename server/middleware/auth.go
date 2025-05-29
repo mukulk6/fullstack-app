@@ -3,6 +3,7 @@ package middleware
 import (
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -28,11 +29,13 @@ func AuthMiddleware() gin.HandlerFunc {
 	}
 
 	return func(c *gin.Context) {
-		tokenStr := c.GetHeader("Authorization")
-		if tokenStr == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Missing token"})
+		authHeader := c.GetHeader("Authorization")
+		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Missing or malformed token"})
 			return
 		}
+
+		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
 
 		claims := &Claims{}
 		token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
