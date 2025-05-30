@@ -10,6 +10,17 @@ export default function EditableComponent({ edit, id, data }) {
 	const router = useRouter();
 	const [productId,setProductId] = useState(id)
 
+	const checkIfRole = (role) => {
+		if(role && role !== '' && role === 'Admin')
+		{
+			return true;
+		}
+		if(role && role !== '' && role === 'User')
+		{
+			return false;
+		}
+	}
+
 	const onClickRedirect = () => {
 		router.push('/products-home')
 	}
@@ -65,7 +76,7 @@ if (edit) {
 		method: 'PUT',
 		headers: {
 			'Content-Type': 'application/json',
-			'Authorization':token
+			'Authorization':`Bearer ${token}`
 		},
 		body: JSON.stringify(newObj),
 	})
@@ -91,6 +102,14 @@ if (edit) {
 			console.error("Error updating product:", err);
 		});
 }
+	}
+
+	const DescriptionComponent = ({description}) => {
+		return(
+			<>
+			<span style={{color:'#6e6e6e',fontSize:'14px'}}>{description}</span>
+			</>
+		)
 	}
 
 	const Toast = ({ open, message, onClose }) => (
@@ -125,28 +144,40 @@ if (edit) {
 						</div>
 						<Card sx={{ width: '400px', height: '400px', marginTop: '5px' }}>
 							<CardContent>
-								<Typography style={{ color: 'GrayText', fontWeight: 'bold', textAlign: 'center', fontSize: '20px', paddingBottom: '5px' }}>{edit ? "Edit" :"Add"} Product Details</Typography>
+								{localStorage.getItem("role") && localStorage.getItem("role") === 'Admin' &&<Typography style={{ color: 'GrayText', fontWeight: 'bold', textAlign: 'center', fontSize: '20px', paddingBottom: '5px' }}>{edit ? "Edit" :"Add"} Product Details</Typography>}
+								{localStorage.getItem("role") && localStorage.getItem("role") === 'User' && (
+									<>
+									<Typography style={{ color: 'GrayText', fontWeight: 'bold', textAlign: 'center', fontSize: '20px', paddingBottom: '5px' }}>Product Details</Typography>
+									</>
+								)}
 								<Grid paddingBottom={1} container justifyContent={'center'} alignItems={"center"} columnSpacing={1}>
 									<Grid item size={{ lg: 3 }}><span>Name:</span></Grid>
-									<Grid item lg={4}><input onChange={(e) => onChangeValues(e)} value={inputValues.name} name="name" type="text" style={inputBoxStyles} /></Grid>
+									<Grid item size={{lg:4}}>
+										{checkIfRole(localStorage.getItem("role")) ? <input onChange={(e) => onChangeValues(e)} value={inputValues.name} name="name" type="text" style={inputBoxStyles} />
+										: <DescriptionComponent description={inputValues.name} />	
+									}</Grid>
+										
 								</Grid>
 								<Grid paddingBottom={1} container justifyContent={'center'} alignItems={"center"} columnSpacing={1}>
 									<Grid item size={{ lg: 3 }}><span>Description:</span></Grid>
-									<Grid item lg={4}><input onChange={(e) => onChangeValues(e)} value={inputValues.description} name="description" type="text" style={inputBoxStyles} /></Grid>
+									<Grid item size={{lg:4}}>
+										{checkIfRole(localStorage.getItem("role")) ? <input onChange={(e) => onChangeValues(e)} value={inputValues.description} name="description" type="text" style={inputBoxStyles} /> : <DescriptionComponent description={inputValues.description} />}</Grid>
 								</Grid>
 								<Grid paddingBottom={1} container justifyContent={'center'} alignItems={"center"} columnSpacing={1}>
 									<Grid item size={{ lg: 3 }}><span>Price:</span></Grid>
-									<Grid item lg={4}><input min={0} onChange={(e) => onChangeValues(e)} value={inputValues.price} name="price" type="number" style={inputBoxStyles} /></Grid>
+									<Grid item size={{lg:4}}>
+										{checkIfRole(localStorage.getItem("role")) ? <input min={0} onChange={(e) => onChangeValues(e)} value={inputValues.price} name="price" type="number" style={inputBoxStyles} /> : <DescriptionComponent description={inputValues.price} />}</Grid>
 								</Grid>
 								<Grid paddingBottom={1} container justifyContent={'center'} alignItems={"center"} columnSpacing={1}>
 									<Grid item size={{ lg: 3 }}><span>Quantity:</span></Grid>
-									<Grid item lg={4}><input onChange={(e) => onChangeValues(e)} min={0} value={inputValues.quantity} name="quantity" type="number" style={inputBoxStyles} /></Grid>
+									<Grid item size={{lg:4}}>
+										{checkIfRole(localStorage.getItem("role")) ? <input onChange={(e) => onChangeValues(e)} min={0} value={inputValues.quantity} name="quantity" type="number" style={inputBoxStyles} /> : <DescriptionComponent description={inputValues.quantity} />}</Grid>
 								</Grid>
-								<Grid container justifyContent={"end"}>
+								{localStorage.getItem("role") && localStorage.getItem("role") === 'Admin' && <Grid container justifyContent={"end"}>
 									<Grid item lg={12}>
 										<Button onClick={() => onClickSubmitValues()} variant="outlined">{edit ? "Edit" : "Submit"}</Button>
 									</Grid>
-								</Grid>
+								</Grid>}
 								{open && <Toast open={open} message={message} onClose={handleClose} />}
 							</CardContent>
 						</Card>

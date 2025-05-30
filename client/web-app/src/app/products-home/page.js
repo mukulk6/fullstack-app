@@ -60,6 +60,7 @@ export default function ProductsPage() {
 		router.push('/add-product')
 	}
 
+
 	const onClickDelete = () => {
 			const token = localStorage.getItem("token");
 		    fetch(`http://localhost:8080/products/${deleteId}`, {
@@ -110,6 +111,10 @@ export default function ProductsPage() {
 			}).then((res)=>res.json()).then((data)=>setData(data?.products)).catch((err)=>console.log(err))
 		}
 
+		const onClickCard = (id) => {
+			router.push(`new-product/${id}`)
+		}
+
 	useEffect(() => {
 		var token = null;
 		if(localStorage.getItem("token") && localStorage.getItem("token") !== '')
@@ -134,7 +139,7 @@ export default function ProductsPage() {
 	return (
 		<>
 			<NavigationBar />
-						<Box sx={{ display: 'flex', justifyContent: 'end',width:'90%',marginTop:'12px' }}>
+						{role === 'Admin' &&<Box sx={{ display: 'flex', justifyContent: 'end',width:'90%',marginTop:'12px' }}>
 						<Grid item>
 							<FormControl>
 								{/* <Select
@@ -156,7 +161,7 @@ export default function ProductsPage() {
 								})}</select>
 						</FormControl>
 						</Grid>
-					</Box>
+					</Box>}
 			<Grid container spacing={2} paddingTop={3} justifyContent={'center'}>
 		
 				{loading && <Box sx={{ display: 'flex', justifyContent: 'center' }}><CircularProgress /></Box>}
@@ -175,7 +180,8 @@ export default function ProductsPage() {
 									transform: 'scale(1.05)',
 									boxShadow: '0 8px 30px rgba(0,0,0,0.2)',
 								},
-							}} key={ind} variant="outlined"><CardContent sx={{ height: '100%' }}><Typography gutterBottom sx={{ color: 'text.secondary', fontSize: 14 }}>
+							}} onClick={()=>role === 'User' ? onClickCard(obj.id) : ""} key={ind} variant="outlined"
+							><CardContent sx={{ height: '100%' }}><Typography gutterBottom sx={{ color: 'text.secondary', fontSize: 14 }}>
 								{obj.name}
 							</Typography> <Typography variant="h6" component="div">
 										{obj.description}</Typography>

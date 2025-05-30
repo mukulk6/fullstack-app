@@ -118,7 +118,8 @@ func SignInUser(c *gin.Context) {
 		"message": "Login successful",
 		"token":   tokenString,
 		"role":    role,
-		"id":id
+		"id":      id,
+		"email":   input.Email,
 	})
 }
 

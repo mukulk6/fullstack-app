@@ -10,11 +10,13 @@ export default function NewProductPage() {
     const [data, setData] = useState({});
 
     useEffect(() => {
+        const token = localStorage.getItem("token")
         if (id) {
             fetch(`http://localhost:8080/products/${id}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization':`Bearer ${token}`
                 },
             })
                 .then((res) => res.json())

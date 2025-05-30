@@ -61,6 +61,7 @@ const Toast = ({ open, message, onClose,error }) => (
                 if(data.role !== undefined)
                 {
                 localStorage.setItem("role",data.role);
+                localStorage.setItem("email",data.email);
                 // fetchProducts();
                 router.push('/products-home')
             }
@@ -100,7 +101,7 @@ fetch('http://localhost:8080/signup', {
         <>
         <div >
         <Grid container justifyContent={'center'}>
-            <Grid sx={{backgroundColor:'#fff'}} item size={3} height={'300px'} border={'1px solid lightgray'} padding={'12px'}>
+            <Grid marginTop={'2%'} sx={{backgroundColor:'#fff'}} item size={3} height={'300px'} border={'1px solid lightgray'} padding={'12px'}>
               <h6 className={styles.titleHeader}>{clickSignUp ? 'Sign Up': 'Login'}</h6> 
               <div className={styles.inputBox}>
                 <span>*</span><span style={{paddingRight:'5px',color:'#5c5c5c',fontWeight:700}}>Email:</span>
