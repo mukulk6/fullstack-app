@@ -14,22 +14,25 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func PingHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "hell from backend 12345678910111"})
+type SignupInput struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=8"`
+	Role     string `json:"role" binding:"required,oneof=Admin User"`
 }
 
-func GetUsers(c *gin.Context) {
-	// You can fetch users from DB here
-	c.JSON(http.StatusOK, gin.H{"users": []string{"Alice", "Bob", "Gitanjali"}})
-}
-
+// SignUpUser godoc
+//
+//	@Summary		Register a new user
+//	@Description	Creates a new user account with email, password, and role
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			user	body		models.SignupInput	true	"User sign up input"
+//	@Success		201		{object}	map[string]string	"User signed up successfully"
+//	@Failure		400		{object}	map[string]string	"Bad request or user already exists"
+//	@Failure		500		{object}	map[string]string	"Internal server error"
+//	@Router			/signup [post]
 func SignUpUser(c *gin.Context) {
-	type SignupInput struct {
-		Email    string `json:"email" binding:"required,email"`
-		Password string `json:"password" binding:"required,min=8"`
-		Role     string `json:"role" binding:"required,oneof=Admin User"`
-	}
-
 	var input SignupInput
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -69,6 +72,19 @@ func SignUpUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "User signed up successfully"})
 }
 
+// SignInUser godoc
+//
+//	@Summary		Login a user
+//	@Description	Authenticates a user using email and password, and returns a JWT token
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			credentials	body		models.SignInInput		true	"User login credentials"
+//	@Success		200			{object}	map[string]interface{}	"Login successful, returns JWT token and user info"
+//	@Failure		400			{object}	map[string]string		"Bad request (missing or invalid input)"
+//	@Failure		401			{object}	map[string]string		"Unauthorized (invalid credentials)"
+//	@Failure		500			{object}	map[string]string		"Internal server error"
+//	@Router			/login [post]
 func SignInUser(c *gin.Context) {
 	type SignInInput struct {
 		Email    string `json:"email" binding:"required,email"`
@@ -96,7 +112,7 @@ func SignInUser(c *gin.Context) {
 	// Compare password
 	err = bcrypt.CompareHashAndPassword([]byte(storedHashedPassword), []byte(input.Password))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid email or password"})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid email or password", "error": true})
 		return
 	}
 
@@ -131,6 +147,20 @@ type Product struct {
 	Quantity    int     `json:"quantity" binding:"required"`
 }
 
+// CreateProduct godoc
+//
+//	@Summary		Create a new product
+//	@Description	Adds a new product to the database. Requires admin privileges.
+//	@Tags			products
+//	@Security		ApiKeyAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			product	body		models.Product		true	"Product data"
+//	@Success		201		{object}	map[string]string	"Product created successfully"
+//	@Failure		400		{object}	map[string]string	"Bad request (invalid input)"
+//	@Failure		401		{object}	map[string]string	"Unauthorized (not logged in)"
+//	@Failure		500		{object}	map[string]string	"Internal server error"
+//	@Router			/products [post]
 func CreateProduct(c *gin.Context) {
 	var input Product
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -165,6 +195,20 @@ func CreateProduct(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Product created successfully"})
 }
 
+// UpdateProduct godoc
+//
+//	@Summary		Update an existing product
+//	@Description	Updates the details of a product by its ID
+//	@Tags			products
+//	@Security		ApiKeyAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		int					true	"Product ID"
+//	@Param			product	body		models.Product		true	"Updated product data"
+//	@Success		200		{object}	map[string]string	"Product updated successfully"
+//	@Failure		400		{object}	map[string]string	"Bad request (invalid input)"
+//	@Failure		500		{object}	map[string]string	"Internal server error"
+//	@Router			/products/{id} [put]
 func UpdateProduct(c *gin.Context) {
 	id := c.Param("id")
 	var input Product
@@ -183,6 +227,16 @@ func UpdateProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Product updated successfully"})
 }
 
+// DeleteProduct godoc
+//
+//	@Summary		Delete a product
+//	@Description	Deletes a product by its ID
+//	@Tags			products
+//	@Security		ApiKeyAuth
+//	@Param			id	path		int					true	"Product ID"
+//	@Success		200	{object}	map[string]string	"Product deleted successfully"
+//	@Failure		500	{object}	map[string]string	"Internal server error"
+//	@Router			/products/{id} [delete]
 func DeleteProduct(c *gin.Context) {
 	id := c.Param("id")
 	query := `DELETE FROM products WHERE id = $1`
@@ -195,6 +249,15 @@ func DeleteProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Product deleted successfully"})
 }
 
+// GetAllProducts godoc
+//	@Summary		Get all products
+//	@Description	Retrieves all products. Optionally filter by admin email.
+//	@Tags			products
+//	@Security		ApiKeyAuth
+//	@Param			admin	query		string								false	"Admin email to filter products by creator"
+//	@Success		200		{object}	map[string][]map[string]interface{}	"List of products"
+//	@Failure		500		{object}	map[string]string					"Internal server error"
+//	@Router			/products [get]
 func GetAllProducts(c *gin.Context) {
 	adminUsername := c.Query("admin")
 
@@ -250,6 +313,12 @@ ORDER BY p.updated_at DESC`
 	c.JSON(http.StatusOK, gin.H{"products": products})
 }
 
+//	@Summary	Get product by ID
+//	@Tags		products
+//	@Security	ApiKeyAuth
+//	@Param		id	path		int	true	"Product ID"
+//	@Success	200	{object}	Product
+//	@Router		/products/{id} [get]
 func GetProductById(c *gin.Context) {
 	id := c.Param("id")
 	var product Product
@@ -264,6 +333,11 @@ func GetProductById(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"product": product})
 }
 
+//	@Summary	List admin users
+//	@Tags		admin
+//	@Security	ApiKeyAuth
+//	@Success	200	{array}	models.AdminUserResponse
+//	@Router		/admins/list [get]
 func GetAdminList(c *gin.Context) {
 	query := `SELECT id, email FROM users WHERE role = 'Admin' ORDER BY email ASC`
 

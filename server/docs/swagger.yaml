@@ -1,0 +1,330 @@
+basePath: /
+definitions:
+  handlers.Product:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      price:
+        type: number
+      quantity:
+        type: integer
+    required:
+    - name
+    - price
+    - quantity
+    type: object
+  models.AdminUserResponse:
+    properties:
+      label:
+        example: admin@example.com
+        type: string
+      value:
+        example: 1
+        type: integer
+    type: object
+  models.Product:
+    properties:
+      description:
+        example: A high-end gaming laptop
+        type: string
+      name:
+        example: Laptop
+        type: string
+      price:
+        example: 1999.99
+        type: number
+      quantity:
+        example: 10
+        type: integer
+    type: object
+  models.SignInInput:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: securepassword
+        type: string
+    type: object
+  models.SignupInput:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: strongpassword123
+        minLength: 8
+        type: string
+      role:
+        enum:
+        - Admin
+        - User
+        example: User
+        type: string
+    required:
+    - email
+    - password
+    - role
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: This is a sample server using Gin and Swagger.
+  title: My API
+  version: "1.0"
+paths:
+  /admins/list:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.AdminUserResponse'
+            type: array
+      security:
+      - ApiKeyAuth: []
+      summary: List admin users
+      tags:
+      - admin
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user using email and password, and returns a JWT
+        token
+      parameters:
+      - description: User login credentials
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/models.SignInInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login successful, returns JWT token and user info
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request (missing or invalid input)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized (invalid credentials)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login a user
+      tags:
+      - auth
+  /products:
+    get:
+      description: Retrieves all products. Optionally filter by admin email.
+      parameters:
+      - description: Admin email to filter products by creator
+        in: query
+        name: admin
+        type: string
+      responses:
+        "200":
+          description: List of products
+          schema:
+            additionalProperties:
+              items:
+                additionalProperties: true
+                type: object
+              type: array
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Get all products
+      tags:
+      - products
+    post:
+      consumes:
+      - application/json
+      description: Adds a new product to the database. Requires admin privileges.
+      parameters:
+      - description: Product data
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/models.Product'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Product created successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad request (invalid input)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized (not logged in)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new product
+      tags:
+      - products
+  /products/{id}:
+    delete:
+      description: Deletes a product by its ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: Product deleted successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Delete a product
+      tags:
+      - products
+    get:
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handlers.Product'
+      security:
+      - ApiKeyAuth: []
+      summary: Get product by ID
+      tags:
+      - products
+    put:
+      consumes:
+      - application/json
+      description: Updates the details of a product by its ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated product data
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/models.Product'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product updated successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad request (invalid input)
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Update an existing product
+      tags:
+      - products
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user account with email, password, and role
+      parameters:
+      - description: User sign up input
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/models.SignupInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: User signed up successfully
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad request or user already exists
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a new user
+      tags:
+      - auth
+swagger: "2.0"
