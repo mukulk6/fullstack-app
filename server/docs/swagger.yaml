@@ -130,6 +130,8 @@ paths:
             additionalProperties:
               type: string
             type: object
+      security:
+      - ApiKeyAuth: []
       summary: Login a user
       tags:
       - auth
@@ -327,4 +329,9 @@ paths:
       summary: Register a new user
       tags:
       - auth
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

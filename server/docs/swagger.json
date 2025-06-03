@@ -35,6 +35,11 @@
         },
         "/login": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Authenticates a user using email and password, and returns a JWT token",
                 "consumes": [
                     "application/json"
@@ -499,6 +504,13 @@
                     "example": "User"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }

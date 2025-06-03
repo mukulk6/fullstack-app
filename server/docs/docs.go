@@ -41,6 +41,11 @@ const docTemplate = `{
         },
         "/login": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "Authenticates a user using email and password, and returns a JWT token",
                 "consumes": [
                     "application/json"
@@ -505,6 +510,13 @@ const docTemplate = `{
                     "example": "User"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`

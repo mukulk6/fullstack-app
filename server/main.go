@@ -1,8 +1,12 @@
-//	@title			My API
-//	@version		1.0
-//	@description	This is a sample server using Gin and Swagger.
-//	@host			localhost:8080
-//	@BasePath		/
+//	@title						My API
+//	@version					1.0
+//	@description				This is a sample server using Gin and Swagger.
+//	@host						localhost:8080
+//	@BasePath					/
+//
+//	@securityDefinitions.apikey	ApiKeyAuth
+//	@in							header
+//	@name						Authorization
 package main
 
 import (

@@ -77,6 +77,9 @@ func SignUpUser(c *gin.Context) {
 //	@Summary		Login a user
 //	@Description	Authenticates a user using email and password, and returns a JWT token
 //	@Tags			auth
+//
+//	@Security		ApiKeyAuth
+//
 //	@Accept			json
 //	@Produce		json
 //	@Param			credentials	body		models.SignInInput		true	"User login credentials"
@@ -250,6 +253,7 @@ func DeleteProduct(c *gin.Context) {
 }
 
 // GetAllProducts godoc
+//
 //	@Summary		Get all products
 //	@Description	Retrieves all products. Optionally filter by admin email.
 //	@Tags			products
