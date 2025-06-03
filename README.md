@@ -31,8 +31,12 @@ This is a full-stack web application built using **React** (frontend), **GoLang 
 | Database   | PostgreSQL          |
 | Auth       | JWT-based authentication |
 | Styling    | Material UI (MUI)   |
+| Documentation|Swagger            |
 
 ---
+
+## Documentation Instructions
+-To access the documentation you need to access the route to localhost:80808/swagger/index.html. This will show you documentation for all the apis that have been created in the app. 
 
 ## 📦 Setup Instructions
 
