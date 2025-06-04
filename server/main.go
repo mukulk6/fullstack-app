@@ -1,12 +1,12 @@
-//	@title						My API
-//	@version					1.0
-//	@description				This is a sample server using Gin and Swagger.
-//	@host						localhost:8080
-//	@BasePath					/
+// @title						My API
+// @version					1.0
+// @description				This is a sample server using Gin and Swagger.
+// @host						localhost:8080
+// @BasePath					/
 //
-//	@securityDefinitions.apikey	ApiKeyAuth
-//	@in							header
-//	@name						Authorization
+// @securityDefinitions.apikey	ApiKeyAuth
+// @in							header
+// @name						Authorization
 package main
 
 import (
@@ -16,6 +16,8 @@ import (
 	"server/db"
 	docs "server/docs"
 	"server/router"
+
+	"server/handlers/search"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -57,6 +59,8 @@ func main() {
 	}))
 
 	router.SetupRoutes(r)
+	search.InitClients()
+	search.BulkSyncProductsToES()
 
 	log.Printf("Server running on port %s", port)
 	r.Run(":" + port)

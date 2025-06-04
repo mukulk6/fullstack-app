@@ -3,6 +3,7 @@ package middleware
 import (
 	"net/http"
 	"os"
+	"runtime/debug"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -31,7 +32,7 @@ func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Missing or malformed token"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Missing or malformed token", "stack": string(debug.Stack())})
 			return
 		}
 

@@ -115,6 +115,27 @@ export default function ProductsPage() {
 			router.push(`new-product/${id}`)
 		}
 
+		const getProductsList = (val) => {
+			const token = localStorage.getItem("token")
+			if(val !== '')
+			{
+				fetch(`http://localhost:8080/search?query=${val}`,{
+					method:'GET',
+						headers:{
+					  'Content-Type': 'application/json',
+				},
+				}).then((res)=>res.json()).then((data)=>{
+					if(data)
+					{
+						if(data.results && data.results.length > 0)
+						{
+							setData(data.results)
+						}
+					}
+				}).catch((err)=>console.log(err))
+			}
+		}
+
 	useEffect(() => {
 		var token = null;
 		if(localStorage.getItem("token") && localStorage.getItem("token") !== '')
@@ -160,6 +181,11 @@ export default function ProductsPage() {
 									return(<option value={obj.label} key={ind}>{obj.label}</option>)
 								})}</select>
 						</FormControl>
+						{role === 'Admin' && (
+							<>
+							<input type="text" onChange={(e)=>getProductsList(e.target.value)} />
+							</>
+						)}
 						</Grid>
 					</Box>}
 			<Grid container spacing={2} paddingTop={3} justifyContent={'center'}>

@@ -3,7 +3,9 @@ package router
 
 import (
 	"server/handlers"
+	"server/handlers/search"
 	"server/middleware"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	// Swagger docs import (replace with your actual module path)
@@ -13,8 +15,9 @@ import (
 func SetupRoutes(r *gin.Engine) {
 	r.POST("/signup", handlers.SignUpUser)
 	r.POST("/login", handlers.SignInUser)
-
 	product := r.Group("/products")
+	r.GET("/search", search.Throttle(300*time.Millisecond), search.SearchHandler)
+
 	product.Use(middleware.AuthMiddleware())
 	{
 
