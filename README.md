@@ -12,6 +12,7 @@ This is a full-stack web application built using **React** (frontend), **GoLang 
   - Sign up and log in
   - View list of available products
   - View product details on click
+  - Filter products created by various admins[Applies only for an Admin role]
 
 - **Admin**
   - Full access to product management:
