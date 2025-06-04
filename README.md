@@ -37,7 +37,7 @@ This is a full-stack web application built using **React** (frontend), **GoLang 
 ---
 
 ## Documentation Instructions
--To access the documentation you need to access the route to localhost:8080/swagger/index.html. This will show you documentation for all the apis that have been created in the app. 
+-To access the documentation you need to access the route to `http://localhost:8080/swagger/index.html` This will show you documentation for all the apis that have been created in the app. 
 
 ## 📦 Setup Instructions
 
