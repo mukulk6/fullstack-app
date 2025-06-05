@@ -33,6 +33,8 @@ This is a full-stack web application built using **React** (frontend), **GoLang 
 | Auth       | JWT-based authentication |
 | Styling    | Material UI (MUI)   |
 | Documentation|Swagger            |
+|Caching & Throttling| Redis used for request throttling and temporary data caching |
+|Search Functionality: Integrated Elasticsearch for advanced product search and indexing |
 
 ---
 

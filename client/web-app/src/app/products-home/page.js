@@ -127,9 +127,13 @@ export default function ProductsPage() {
 				}).then((res)=>res.json()).then((data)=>{
 					if(data)
 					{
-						if(data.results && data.results.length > 0)
+						if(data.results && data.results.length > 0 && val !== "")
 						{
 							setData(data.results)
+							if(val === "" || val.length ===0)
+							{
+								fetchProducts()
+							}
 						}
 					}
 				}).catch((err)=>console.log(err))
@@ -161,6 +165,7 @@ export default function ProductsPage() {
 		<>
 			<NavigationBar />
 						{role === 'Admin' &&<Box sx={{ display: 'flex', justifyContent: 'end',width:'90%',marginTop:'12px' }}>
+							<Grid container>
 						<Grid item>
 							<FormControl>
 								{/* <Select
@@ -175,17 +180,17 @@ export default function ProductsPage() {
 									</MenuItem>
 								))}
 								</Select> */}
-								<span style={{fontSize:'14px'}}>Filter By Users: </span><select onChange={(e)=>onChangeUser(e)} style={stylingOptions} >
+								<select aria-placeholder="WHat" onChange={(e)=>onChangeUser(e)} style={stylingOptions} >
 									<option value={''}>All</option>
 									{options.length > 0  && options.map((obj,ind)=>{
 									return(<option value={obj.label} key={ind}>{obj.label}</option>)
 								})}</select>
 						</FormControl>
-						{role === 'Admin' && (
+						 
 							<>
-							<input type="text" onChange={(e)=>getProductsList(e.target.value)} />
+							<input placeholder="Search for Products" style={stylingOptions} type="text" onChange={(e)=>getProductsList(e.target.value)} />
 							</>
-						)}
+						</Grid>
 						</Grid>
 					</Box>}
 			<Grid container spacing={2} paddingTop={3} justifyContent={'center'}>
