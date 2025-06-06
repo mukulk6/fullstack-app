@@ -5,6 +5,7 @@ import (
 	"context"
 	"net/http"
 	"os"
+	"server/config"
 	"server/db"
 	"time"
 
@@ -248,6 +249,17 @@ func DeleteProduct(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete product"})
 		return
 	}
+	esRes, err := config.EsClient.Delete("products", id)
+	if err != nil || esRes.IsError() {
+		if esRes != nil {
+			defer esRes.Body.Close()
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete product from Elasticsearch"})
+		return
+	}
+	defer esRes.Body.Close()
+	ctx := context.Background()
+	_ = config.RedisClient.Del(ctx, "product:"+id).Err()
 
 	c.JSON(http.StatusOK, gin.H{"message": "Product deleted successfully"})
 }
@@ -317,12 +329,12 @@ ORDER BY p.updated_at DESC`
 	c.JSON(http.StatusOK, gin.H{"products": products})
 }
 
-//	@Summary	Get product by ID
-//	@Tags		products
-//	@Security	ApiKeyAuth
-//	@Param		id	path		int	true	"Product ID"
-//	@Success	200	{object}	Product
-//	@Router		/products/{id} [get]
+// @Summary	Get product by ID
+// @Tags		products
+// @Security	ApiKeyAuth
+// @Param		id	path		int	true	"Product ID"
+// @Success	200	{object}	Product
+// @Router		/products/{id} [get]
 func GetProductById(c *gin.Context) {
 	id := c.Param("id")
 	var product Product
@@ -337,11 +349,11 @@ func GetProductById(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"product": product})
 }
 
-//	@Summary	List admin users
-//	@Tags		admin
-//	@Security	ApiKeyAuth
-//	@Success	200	{array}	models.AdminUserResponse
-//	@Router		/admins/list [get]
+// @Summary	List admin users
+// @Tags		admin
+// @Security	ApiKeyAuth
+// @Success	200	{array}	models.AdminUserResponse
+// @Router		/admins/list [get]
 func GetAdminList(c *gin.Context) {
 	query := `SELECT id, email FROM users WHERE role = 'Admin' ORDER BY email ASC`
 

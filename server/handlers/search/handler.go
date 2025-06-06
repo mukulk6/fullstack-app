@@ -68,14 +68,14 @@ func SearchHandler(c *gin.Context) {
 
 	// Build Elasticsearch query
 	esQuery := fmt.Sprintf(`{
-		"query": {
-			"match_phrase_prefix": {
-				"name": {
-					"query": "%s"
-				}
-			}
+	"query": {
+		"multi_match": {
+			"query": "%s",
+			"fields": ["name", "description"],
+			"fuzziness":"AUTO"
 		}
-	}`, query)
+	}
+}`, query)
 
 	// Query Elasticsearch
 	res, err := EsClient.Search(
