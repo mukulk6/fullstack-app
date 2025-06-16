@@ -2,6 +2,7 @@
 package router
 
 import (
+	"server/config"
 	"server/handlers"
 	"server/handlers/search"
 	"server/middleware"
@@ -16,7 +17,8 @@ func SetupRoutes(r *gin.Engine) {
 	r.POST("/signup", handlers.SignUpUser)
 	r.POST("/login", handlers.SignInUser)
 	product := r.Group("/products")
-	r.GET("/search", search.Throttle(300*time.Millisecond), search.SearchHandler)
+	r.GET("/search", search.Throttle(300*time.Millisecond), config.SearchHandler)
+	r.GET("/weekly-products", handlers.GetNewWeeklyProducts)
 
 	product.Use(middleware.AuthMiddleware())
 	{

@@ -3,10 +3,13 @@ package handlers
 
 import (
 	"context"
+	"io"
+	"log"
 	"net/http"
 	"os"
 	"server/config"
 	"server/db"
+	"server/scheduler"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -243,25 +246,51 @@ func UpdateProduct(c *gin.Context) {
 //	@Router			/products/{id} [delete]
 func DeleteProduct(c *gin.Context) {
 	id := c.Param("id")
+
+	// Delete from PostgreSQL
 	query := `DELETE FROM products WHERE id = $1`
 	_, err := db.Pool.Exec(context.Background(), query, id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete product"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "❌ DB Delete Error: " + err.Error()})
 		return
 	}
+
+	// Check Elasticsearch client
+	if config.EsClient == nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "❌ Elasticsearch client is not initialized"})
+		return
+	}
+
+	// Delete from Elasticsearch
 	esRes, err := config.EsClient.Delete("products", id)
-	if err != nil || esRes.IsError() {
-		if esRes != nil {
-			defer esRes.Body.Close()
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete product from Elasticsearch"})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "❌ Failed to connect to Elasticsearch: " + err.Error()})
 		return
 	}
 	defer esRes.Body.Close()
-	ctx := context.Background()
-	_ = config.RedisClient.Del(ctx, "product:"+id).Err()
 
-	c.JSON(http.StatusOK, gin.H{"message": "Product deleted successfully"})
+	if esRes.IsError() {
+		// Read response body for better error detail
+		body, _ := io.ReadAll(esRes.Body)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error":      "❌ Elasticsearch delete error",
+			"statusCode": esRes.StatusCode,
+			"details":    string(body),
+		})
+		return
+	}
+
+	// Delete from Redis (optional, not critical)
+	if config.RedisClient != nil {
+		ctx := context.Background()
+		err := config.RedisClient.Del(ctx, "product:"+id).Err()
+		if err != nil {
+			log.Printf("⚠️ Redis delete warning: %v", err)
+		}
+	}
+
+	// All successful
+	c.JSON(http.StatusOK, gin.H{"message": "✅ Product deleted successfully"})
 }
 
 // GetAllProducts godoc
@@ -379,4 +408,22 @@ func GetAdminList(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, result)
+}
+
+func GetNewWeeklyProducts(c *gin.Context) {
+	products := scheduler.WeeklyProducts
+
+	if len(products) == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "No new products added last week.",
+			"data":    []interface{}{},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Weekly products retrieved successfully.",
+		"data":    products,
+		"count":   len(products),
+	})
 }

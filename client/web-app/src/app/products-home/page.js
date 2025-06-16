@@ -52,6 +52,17 @@ export default function ProductsPage() {
 			})
 			.catch((err) => console.log(err));
 	};
+
+	const checkForNewProducts = () => {
+		fetch('http://localhost:8080/weekly-products',{
+			method: 'GET',
+				headers: {
+				'Content-Type': 'application/json',
+			},
+
+		}).then((res)=>res.json()).then((data)=>console.log(data)).catch((err)=>console.log(err))
+	}
+
 	const [data, setData] = useState([]);
 	const [deleteId,setDeleteId] = useState(null)
 	const [options,setOptions] = useState([])
@@ -160,6 +171,8 @@ export default function ProductsPage() {
       },
 			}).then((res)=>res.json()).then((data)=>setOptions(data)).catch((err)=>console.log(err))
 		}
+			checkForNewProducts()
+		
 	}, [])
 	return (
 		<>
